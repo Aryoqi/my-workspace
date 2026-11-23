@@ -18,8 +18,8 @@ class CloudBackendService {
   loadConfig() {
     try {
       const saved = localStorage.getItem(this.STORAGE_KEY);
-      const DEFAULT_CLOUD_URL = "https://edlbybxmcxqdpnepslnr.supabase.co";
-      const DEFAULT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkbGJ5YnhtY3hxZHBuZXBzbG5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0NjU3MTUsImV4cCI6MjExMTA0MTcxNX0.3ZLOrGcNOLCFSSuE-WulhHrvpN49GuPCkRTsQCbk6Qk";
+      const DEFAULT_CLOUD_URL = "https://kfcvbvfirnaobltzfjxf.supabase.co";
+      const DEFAULT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmY3ZidmZpcm5hb2JsdHpmanhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0NjI3MTMsImV4cCI6MjExMTAzODcxM30.M7yr1eGgfO1ecyLyaPn_OrUYM8qGMXxLXLTC47pdbdA";
 
       if (saved) {
         this.config = JSON.parse(saved);
