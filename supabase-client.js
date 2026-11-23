@@ -18,14 +18,20 @@ class CloudBackendService {
   loadConfig() {
     try {
       const saved = localStorage.getItem(this.STORAGE_KEY);
+      const DEFAULT_CLOUD_URL = "https://edlbybxmcxqdpnepslnr.supabase.co";
+      const DEFAULT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkbGJ5YnhtY3hxZHBuZXBzbG5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0NjU3MTUsImV4cCI6MjExMTA0MTcxNX0.3ZLOrGcNOLCFSSuE-WulhHrvpN49GuPCkRTsQCbk6Qk";
+
       if (saved) {
         this.config = JSON.parse(saved);
+        if (!this.config.url) this.config.url = DEFAULT_CLOUD_URL;
+        if (!this.config.anonKey) this.config.anonKey = DEFAULT_ANON_KEY;
+        this.config.isConfigured = true;
       } else {
-        // Default configuration placeholder
+        // Pre-configured live project credentials
         this.config = {
-          url: "",
-          anonKey: "",
-          isConfigured: false
+          url: DEFAULT_CLOUD_URL,
+          anonKey: DEFAULT_ANON_KEY,
+          isConfigured: true
         };
       }
     } catch (e) {
