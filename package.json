@@ -1,0 +1,13 @@
+{
+  "name": "my-workspace",
+  "version": "1.0.0",
+  "description": "Original local team workspace inspired by common team-chat patterns and publicly visible Slack UI behavior.",
+  "type": "module",
+  "scripts": {
+    "test": "node test-suite.js",
+    "start": "npx serve ."
+  },
+  "keywords": ["workspace", "team-chat", "local-first", "huddle"],
+  "author": "Alex Morgan",
+  "license": "MIT"
+}

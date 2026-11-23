@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Workspace — Local Team Workspace</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Notice Banner: Transparently labels mocked / offline features -->
+  <div class="prototype-banner">
+    <span class="badge">Local Prototype</span>
+    <span><strong>My Workspace</strong>: Local Team Workspace with simulated multi-user interactions, local files/notes, and mocked Huddle audio.</span>
+  </div>
+
+  <div class="workspace-frame">
+
+    <!-- ======================================================================
+         SIDEBAR NAVIGATION (Deep Purple)
+         ====================================================================== -->
+    <aside id="sidebar">
+      
+      <!-- Workspace Header -->
+      <div class="workspace-header" id="workspace-header-menu">
+        <div class="workspace-title-wrap">
+          <div class="workspace-logo">M</div>
+          <div>
+            <div class="workspace-name">My Workspace</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 4px;">
+              <span class="status-dot active" style="width: 7px; height: 7px;"></span>
+              <span>Local Network</span>
+            </div>
+          </div>
+        </div>
+        <button id="reset-sample-data-btn" title="Reset sample data" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:14px;padding:4px;">
+          🔄
+        </button>
+      </div>
+
+      <!-- Navigation Content -->
+      <div class="sidebar-content">
+        
+        <!-- Primary Views -->
+        <div class="nav-group">
+          <div class="nav-item active" data-view="chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Conversations</span>
+          </div>
+          <div class="nav-item" data-view="files">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            <span>Files Repository</span>
+          </div>
+          <div class="nav-item" data-view="notes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span>Notes & Canvas</span>
+          </div>
+          <div class="nav-item" data-view="huddle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            <span>Huddle Room</span>
+          </div>
+        </div>
+
+        <!-- Channels Section -->
+        <div class="nav-group">
+          <div class="group-header">
+            <span>Channels</span>
+            <button class="add-btn" id="add-channel-btn" title="Create channel">+</button>
+          </div>
+          <div id="channels-list">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+
+        <!-- Direct Messages Section -->
+        <div class="nav-group">
+          <div class="group-header">
+            <span>Direct Messages</span>
+          </div>
+          <div id="dm-list">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- User Profile Footer -->
+      <div class="sidebar-footer">
+        <div class="user-profile-summary">
+          <div class="user-avatar-sm" id="current-user-avatar">
+            AM
+            <span class="status-dot active"></span>
+          </div>
+          <div class="user-info-text">
+            <span class="user-name-label" id="current-user-name">Alex Morgan</span>
+            <span class="user-status-text" id="current-user-status">Senior Engineer</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ======================================================================
+         MAIN VIEWPORT
+         ====================================================================== -->
+    <main id="main-view">
+
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="header-left">
+          <div class="header-title-wrap">
+            <div class="header-title" id="chat-header-title">
+              <span style="opacity:0.6;font-size:18px;">#</span> general
+            </div>
+            <div class="header-topic" id="chat-header-topic">
+              Company announcements and team discussions
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="search-bar" id="global-search-input" placeholder="Search messages, files, or notes..." />
+            <span class="search-shortcut-badge">Ctrl+K</span>
+          </div>
+        </div>
+
+        <!-- Right Header Action Buttons -->
+        <div class="header-right">
+          <button class="header-btn huddle-toggle-btn" id="header-huddle-btn">
+            <span>🎙️</span>
+            <span>Start Huddle</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- 1. VIEW: Chat & Conversations -->
+      <section id="view-chat" class="view-container active">
+        <div class="chat-body-container">
+          
+          <!-- Messages Scrollable Feed -->
+          <div class="messages-scroll-area" id="messages-container">
+            <!-- Messages rendered dynamically by app.js -->
+          </div>
+
+          <!-- Thread Drawer (Collapsible) -->
+          <aside id="thread-drawer" style="display: none;">
+            <div class="thread-header">
+              <h3>Thread</h3>
+              <button class="thread-close-btn" id="thread-close-btn">&times;</button>
+            </div>
+            <div class="thread-body">
+              <div id="thread-parent-container"></div>
+              <div class="thread-replies-divider">
+                <span id="thread-reply-count">Replies</span>
+              </div>
+              <div id="thread-replies-container"></div>
+            </div>
+            
+            <!-- Thread Composer -->
+            <div style="padding: 12px 16px; border-top: 1px solid var(--border-color);">
+              <div class="composer-box">
+                <textarea id="thread-composer-input" class="composer-textarea" rows="2" placeholder="Reply to thread..."></textarea>
+                <div class="composer-bottom-bar">
+                  <div style="font-size: 11px; color: var(--text-muted);">Press Enter to send</div>
+                  <button id="thread-send-btn" class="send-message-btn">Reply</button>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+
+        <!-- Main Chat Message Composer -->
+        <div class="chat-composer-wrap">
+          <div class="composer-box">
+            <div class="composer-formatting-bar">
+              <button class="format-btn" title="Bold">B</button>
+              <button class="format-btn" title="Italic"><i>I</i></button>
+              <button class="format-btn" title="Strikethrough"><s>S</s></button>
+              <button class="format-btn" title="Code Block">&lt;/&gt;</button>
+              <button class="format-btn" title="Bulleted List">&bull; List</button>
+            </div>
+            <textarea id="composer-input" class="composer-textarea" placeholder="Message this conversation... (Enter to send, Shift+Enter for new line)"></textarea>
+            <div class="composer-bottom-bar">
+              <div class="composer-tools-left">
+                <input type="file" id="file-upload-input" style="display: none;" />
+                <button class="composer-icon-btn" id="composer-attach-btn" title="Attach file or image">📎</button>
+                <button class="composer-icon-btn" id="composer-emoji-btn" title="Insert emoji">😀</button>
+              </div>
+              <button id="composer-send-btn" class="send-message-btn">
+                <span>Send</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. VIEW: Files Repository -->
+      <section id="view-files" class="view-container">
+        <div class="files-view-header">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Files Repository</h2>
+            <p style="font-size: 12px; color: var(--text-secondary);">Browse, preview, and download documents and media shared across all channels.</p>
+          </div>
+          <div class="file-filters">
+            <button class="filter-chip active" data-filter="all">All Files</button>
+            <button class="filter-chip" data-filter="image">Images</button>
+            <button class="filter-chip" data-filter="document">Documents</button>
+            <button class="filter-chip" data-filter="code">Code & JSON</button>
+          </div>
+        </div>
+        <div class="files-grid" id="files-grid">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </section>
+
+      <!-- 3. VIEW: Notes & Canvas -->
+      <section id="view-notes" class="view-container">
+        <div class="notes-view-wrap">
+          <div class="notes-sidebar">
+            <div class="notes-sidebar-header">
+              <span style="font-weight: 700; font-size: 14px;">Team Notes</span>
+              <button id="new-note-btn" class="add-btn" title="Create note">+</button>
+            </div>
+            <div class="notes-list" id="notes-list">
+              <!-- Populated dynamically by app.js -->
+            </div>
+          </div>
+          <div class="notes-editor-pane">
+            <input type="text" id="note-title-input" class="notes-title-input" placeholder="Note Title..." />
+            <textarea id="note-content-input" class="notes-content-textarea" placeholder="Write markdown team notes here..."></textarea>
+            <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between;">
+              <span>Changes auto-save locally to browser storage.</span>
+              <span>Markdown formatting supported (# Heading, - Lists, `code`)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. VIEW: Huddle Room -->
+      <section id="view-huddle" class="view-container">
+        <div class="huddle-view-container">
+          
+          <div class="huddle-header">
+            <div class="huddle-title-wrap">
+              <span style="font-size: 22px;">🎙️</span>
+              <div>
+                <h3 style="font-size: 16px; font-weight: 700;">Huddle: <span id="huddle-channel-name">#general</span></h3>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.6);">4 Participants • Simulated Local Audio</div>
+              </div>
+            </div>
+            <div class="huddle-live-indicator">
+              <span class="pulse-circle"></span>
+              <span>LIVE</span>
+            </div>
+          </div>
+
+          <!-- Participants Grid -->
+          <div class="huddle-grid">
+            
+            <!-- Self Card -->
+            <div class="huddle-card speaking" id="huddle-self-card">
+              <div class="huddle-card-controls">
+                <span class="huddle-status-badge">🟢</span>
+              </div>
+              <div class="huddle-avatar-large" style="background: #611f69;">AM</div>
+              <div class="huddle-user-name">Alex Morgan (You)</div>
+              <!-- Simulated Canvas Audio Waves -->
+              <canvas id="huddle-audio-canvas" class="huddle-audio-canvas" width="120" height="24"></canvas>
+            </div>
+
+            <!-- Peer Card: Sarah Chen -->
+            <div class="huddle-card speaking">
+              <div class="huddle-card-controls">
+                <span class="huddle-status-badge">🎙️</span>
+              </div>
+              <div class="huddle-avatar-large" style="background: #1264a3;">SC</div>
+              <div class="huddle-user-name">Sarah Chen</div>
+              <div style="font-size: 11px; color: #2EB67D; margin-top: 6px;">Speaking...</div>
+            </div>
+
+            <!-- Peer Card: Marcus Vance -->
+            <div class="huddle-card">
+              <div class="huddle-card-controls">
+                <span class="huddle-status-badge" style="color: #E01E5A;">🔇</span>
+              </div>
+              <div class="huddle-avatar-large" style="background: #2eb67d;">MV</div>
+              <div class="huddle-user-name">Marcus Vance</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 6px;">Muted</div>
+            </div>
+
+            <!-- Screen Share Card Mockup -->
+            <div class="huddle-card" id="huddle-screenshare-card" style="display: none; background: #000; border-color: #1264A3;">
+              <div style="padding: 12px; width: 100%; height: 100%; display: flex; flex-direction: column;">
+                <div style="font-size: 11px; color: #1264A3; font-weight: 700; margin-bottom: 6px;">💻 Screen Share: VS Code / Local Workspace</div>
+                <div style="flex: 1; background: #1E1E1E; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 11px; color: #9CDCFE; overflow: hidden;">
+                  <span style="color: #C586C0;">import</span> { Workspace } <span style="color: #C586C0;">from</span> <span style="color: #CE9178;">'@my-workspace/core'</span>;<br/>
+                  <span style="color: #6A9955;">// Initializing local real-time reactive store</span><br/>
+                  <span style="color: #569CD6;">const</span> app = <span style="color: #569CD6;">new</span> <span style="color: #4EC9B0;">Workspace</span>();<br/>
+                  app.<span style="color: #DCDCAA;">connectLocalChannels</span>();<br/>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Control Dock -->
+          <div class="huddle-controls-dock">
+            <button class="huddle-btn active" id="huddle-mic-btn" title="Toggle Microphone">🎙️</button>
+            <button class="huddle-btn" id="huddle-video-btn" title="Toggle Video Camera">🚫</button>
+            <button class="huddle-btn" id="huddle-screen-btn" title="Share Screen">💻</button>
+            <button class="huddle-btn" id="huddle-emoji-btn" title="React with emoji">🎉</button>
+            <button class="huddle-btn leave-btn" id="huddle-leave-btn">Leave Huddle</button>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ======================================================================
+       MODALS: Create Channel, Search Results
+       ====================================================================== -->
+
+  <!-- Create Channel Modal -->
+  <div class="modal-backdrop" id="channel-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Create a new channel</h3>
+        <button class="modal-close-btn" id="channel-modal-close">&times;</button>
+      </div>
+      <form id="channel-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="new-channel-name">Channel Name</label>
+            <input type="text" id="new-channel-name" class="form-input" placeholder="e.g. frontend-sprint" required />
+            <span class="form-hint">Names must be lowercase, without spaces or special symbols.</span>
+          </div>
+          <div class="form-group">
+            <label for="new-channel-topic">Topic or Purpose (optional)</label>
+            <input type="text" id="new-channel-topic" class="form-input" placeholder="What is this channel about?" />
+          </div>
+          <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 6px;">
+            <input type="checkbox" id="new-channel-private" style="width: 18px; height: 18px; cursor: pointer;" />
+            <label for="new-channel-private" style="cursor: pointer;">
+              <div>Make private</div>
+              <div class="form-hint" style="font-weight: normal;">Only invited members can view this channel</div>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="channel-modal-cancel">Cancel</button>
+          <button type="submit" class="btn-submit">Create Channel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Global Search Modal -->
+  <div class="modal-backdrop" id="search-modal">
+    <div class="modal-card search-modal-card">
+      <div class="modal-header" style="padding: 12px 18px;">
+        <input type="text" id="modal-search-input" class="search-bar" placeholder="Type to search messages, files, or notes..." style="font-size: 15px; padding: 8px 14px;" />
+        <button class="modal-close-btn" id="search-modal-close" style="margin-left: 12px;">&times;</button>
+      </div>
+      <div class="search-results-list" id="search-results-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
