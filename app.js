@@ -560,10 +560,254 @@ class WorkspaceUI {
 
   init() {
     this.bindEvents();
+    this.bindAuthEvents();
+    this.checkAuth();
     this.renderSidebar();
     this.renderConversation();
     this.renderFiles();
     this.renderNotes();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Authentication & Cloud Synchronization
+  // ---------------------------------------------------------------------------
+  async checkAuth() {
+    if (typeof window === "undefined" || !window.cloudService) return;
+
+    const user = await window.cloudService.getCurrentSessionUser();
+    const overlay = document.getElementById("auth-overlay");
+
+    if (user) {
+      if (overlay) overlay.style.display = "none";
+      const name = user.user_metadata?.display_name || user.email.split("@")[0];
+      const email = user.email;
+      this.store.data.currentUser.id = user.id;
+      this.store.data.currentUser.name = name;
+      this.store.data.currentUser.email = email;
+      this.store.data.currentUser.avatarColor = user.user_metadata?.avatar_color || "#4A154B";
+
+      this.updateProfileDisplay(name, email);
+      this.syncRemoteData();
+    } else {
+      // Show auth overlay
+      if (overlay) overlay.style.display = "flex";
+    }
+  }
+
+  updateProfileDisplay(name, email) {
+    const nameEl = document.getElementById("current-user-name");
+    const statusEl = document.getElementById("current-user-status");
+    const avatarEl = document.getElementById("current-user-avatar");
+    const popoverName = document.getElementById("popover-user-name");
+    const popoverEmail = document.getElementById("popover-user-email");
+    const popoverSync = document.getElementById("popover-sync-text");
+
+    if (nameEl) nameEl.textContent = name;
+    if (statusEl) statusEl.textContent = email || "Online";
+    if (avatarEl) {
+      const initial = name.split(" ").map(n => n[0]).join("").toUpperCase();
+      avatarEl.textContent = initial || "U";
+      avatarEl.style.backgroundColor = this.store.data.currentUser.avatarColor;
+    }
+    if (popoverName) popoverName.textContent = name;
+    if (popoverEmail) popoverEmail.textContent = email;
+    if (popoverSync) {
+      const isCloud = window.cloudService?.isConnected;
+      popoverSync.textContent = isCloud ? "Cloud Sync: Active (Supabase)" : "Local Demo Mode";
+    }
+  }
+
+  async syncRemoteData() {
+    if (!window.cloudService?.isConnected) return;
+
+    // Fetch remote channels
+    const remoteChannels = await window.cloudService.fetchChannels();
+    if (remoteChannels && remoteChannels.length > 0) {
+      remoteChannels.forEach(rc => {
+        if (!this.store.data.channels.some(c => c.name === rc.name)) {
+          this.store.data.channels.push({
+            id: rc.id,
+            name: rc.name,
+            topic: rc.topic || "",
+            isPrivate: rc.is_private || false,
+            membersCount: 1
+          });
+        }
+      });
+      this.renderSidebar();
+    }
+
+    // Subscribe to active channel real-time inserts
+    this.setupRealtimeListener();
+  }
+
+  setupRealtimeListener() {
+    if (!window.cloudService?.isConnected) return;
+
+    window.cloudService.subscribeToChannel(this.store.activeConversationId, (remoteMsg) => {
+      // Map remote message to store format
+      const exists = this.store.data.messages.some(m => m.id === remoteMsg.id);
+      if (!exists) {
+        const newMsg = {
+          id: remoteMsg.id,
+          conversationId: remoteMsg.channel_id,
+          conversationType: "channel",
+          authorId: remoteMsg.user_id,
+          authorName: remoteMsg.user_name,
+          authorAvatar: remoteMsg.user_avatar || "#4A154B",
+          timestamp: "Just now",
+          text: remoteMsg.text,
+          attachment: remoteMsg.attachment || null,
+          reactions: remoteMsg.reactions || {},
+          replies: []
+        };
+        this.store.data.messages.push(newMsg);
+        this.renderConversation();
+      }
+    });
+  }
+
+  bindAuthEvents() {
+    const tabSignIn = document.getElementById("tab-sign-in");
+    const tabSignUp = document.getElementById("tab-sign-up");
+    const nameGroup = document.getElementById("signup-name-group");
+    const passwordHint = document.getElementById("password-hint");
+    const submitBtn = document.getElementById("auth-submit-btn");
+    const authForm = document.getElementById("auth-form");
+    const errorAlert = document.getElementById("auth-error-alert");
+    const demoLink = document.getElementById("btn-continue-demo");
+    const userMenuBtn = document.getElementById("sidebar-footer-btn");
+    const userMenuPopover = document.getElementById("user-menu-popover");
+    const logoutBtn = document.getElementById("btn-auth-logout");
+    const openCloudBtn = document.getElementById("btn-open-cloud-settings");
+    const cloudModal = document.getElementById("cloud-modal");
+    const cloudCloseBtn = document.getElementById("cloud-modal-close");
+    const cloudCancelBtn = document.getElementById("cloud-modal-cancel");
+    const cloudForm = document.getElementById("cloud-config-form");
+
+    let isSignUpMode = false;
+
+    if (tabSignIn && tabSignUp) {
+      tabSignIn.addEventListener("click", () => {
+        isSignUpMode = false;
+        tabSignIn.classList.add("active");
+        tabSignUp.classList.remove("active");
+        if (nameGroup) nameGroup.style.display = "none";
+        if (passwordHint) passwordHint.style.display = "none";
+        if (submitBtn) submitBtn.textContent = "Sign In";
+        if (errorAlert) errorAlert.style.display = "none";
+      });
+
+      tabSignUp.addEventListener("click", () => {
+        isSignUpMode = true;
+        tabSignUp.classList.add("active");
+        tabSignIn.classList.remove("active");
+        if (nameGroup) nameGroup.style.display = "flex";
+        if (passwordHint) passwordHint.style.display = "block";
+        if (submitBtn) submitBtn.textContent = "Create Account";
+        if (errorAlert) errorAlert.style.display = "none";
+      });
+    }
+
+    if (authForm) {
+      authForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("auth-email")?.value.trim();
+        const password = document.getElementById("auth-password")?.value;
+        const displayName = document.getElementById("auth-display-name")?.value.trim();
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Please wait...";
+        }
+        if (errorAlert) errorAlert.style.display = "none";
+
+        let result;
+        if (isSignUpMode) {
+          result = await window.cloudService.signUp(email, password, displayName);
+        } else {
+          result = await window.cloudService.signIn(email, password);
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = isSignUpMode ? "Create Account" : "Sign In";
+        }
+
+        if (result.error) {
+          if (errorAlert) {
+            errorAlert.textContent = result.error.message || "Authentication failed. Check your credentials.";
+            errorAlert.style.display = "block";
+          }
+        } else {
+          document.getElementById("auth-overlay").style.display = "none";
+          this.checkAuth();
+        }
+      });
+    }
+
+    // Demo Mode bypass
+    if (demoLink) {
+      demoLink.addEventListener("click", () => {
+        document.getElementById("auth-overlay").style.display = "none";
+        localStorage.setItem("my_workspace_demo_session", JSON.stringify({
+          id: "u_demo",
+          email: "guest@myworkspace.local",
+          user_metadata: { display_name: "Guest Teammate", avatar_color: "#1264A3" }
+        }));
+        this.checkAuth();
+      });
+    }
+
+    // User Popover Toggle
+    if (userMenuBtn && userMenuPopover) {
+      userMenuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        userMenuPopover.classList.toggle("open");
+      });
+      document.addEventListener("click", (e) => {
+        if (!userMenuPopover.contains(e.target) && e.target !== userMenuBtn) {
+          userMenuPopover.classList.remove("open");
+        }
+      });
+    }
+
+    // Logout
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await window.cloudService.signOut();
+        userMenuPopover?.classList.remove("open");
+        document.getElementById("auth-overlay").style.display = "flex";
+      });
+    }
+
+    // Cloud Settings Modal
+    if (openCloudBtn && cloudModal) {
+      openCloudBtn.addEventListener("click", () => {
+        userMenuPopover?.classList.remove("open");
+        const urlInput = document.getElementById("cloud-url-input");
+        const keyInput = document.getElementById("cloud-key-input");
+        if (urlInput) urlInput.value = window.cloudService.config.url || "";
+        if (keyInput) keyInput.value = window.cloudService.config.anonKey || "";
+        cloudModal.classList.add("open");
+      });
+    }
+
+    const closeCloudModal = () => cloudModal?.classList.remove("open");
+    cloudCloseBtn?.addEventListener("click", closeCloudModal);
+    cloudCancelBtn?.addEventListener("click", closeCloudModal);
+
+    if (cloudForm) {
+      cloudForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const url = document.getElementById("cloud-url-input")?.value;
+        const key = document.getElementById("cloud-key-input")?.value;
+        window.cloudService.saveConfig(url, key);
+        closeCloudModal();
+        alert("Cloud configuration saved! Re-authenticating with your Supabase backend...");
+        this.checkAuth();
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1369,6 +1613,11 @@ class WorkspaceUI {
     if (!text.trim() && !this.pendingAttachment) return;
 
     this.store.sendMessage(text, this.pendingAttachment);
+
+    // Sync to cloud if connected
+    if (typeof window !== "undefined" && window.cloudService?.isConnected) {
+      window.cloudService.postMessage(this.store.activeConversationId, text, this.pendingAttachment);
+    }
 
     textarea.value = "";
     this.pendingAttachment = null;

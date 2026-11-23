@@ -85,7 +85,7 @@
       </div>
 
       <!-- User Profile Footer -->
-      <div class="sidebar-footer">
+      <div class="sidebar-footer" id="sidebar-footer-btn" style="cursor: pointer; position: relative;">
         <div class="user-profile-summary">
           <div class="user-avatar-sm" id="current-user-avatar">
             AM
@@ -94,6 +94,27 @@
           <div class="user-info-text">
             <span class="user-name-label" id="current-user-name">Alex Morgan</span>
             <span class="user-status-text" id="current-user-status">Senior Engineer</span>
+          </div>
+        </div>
+        <span style="color: rgba(255,255,255,0.4); font-size: 12px;">⚙️</span>
+
+        <!-- User Menu Popover -->
+        <div class="user-menu-popover" id="user-menu-popover">
+          <div class="user-menu-header">
+            <div style="font-weight: 700; font-size: 13px;" id="popover-user-name">Alex Morgan</div>
+            <div style="font-size: 11px; color: var(--text-secondary);" id="popover-user-email">alex@myworkspace.local</div>
+            <div style="margin-top: 4px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; background: #E8F5E9; color: #2E7D32;" id="popover-sync-badge">
+              <span class="status-dot active" style="width: 6px; height: 6px;"></span>
+              <span id="popover-sync-text">Cloud Sync: Ready</span>
+            </div>
+          </div>
+          <div class="user-menu-item" id="btn-open-cloud-settings">
+            <span>☁️</span>
+            <span>Connect Cloud Backend</span>
+          </div>
+          <div class="user-menu-item danger" id="btn-auth-logout">
+            <span>🚪</span>
+            <span>Sign Out</span>
           </div>
         </div>
       </div>
@@ -375,7 +396,89 @@
     </div>
   </div>
 
-  <!-- Main JavaScript Logic -->
+  <!-- Cloud Backend Settings Modal -->
+  <div class="modal-backdrop" id="cloud-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Connect Free Cloud Backend (Supabase)</h3>
+        <button class="modal-close-btn" id="cloud-modal-close">&times;</button>
+      </div>
+      <form id="cloud-config-form">
+        <div class="modal-body">
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+            Connect your free <strong>Supabase</strong> project to enable real-time synchronized team chat, user authentication, and multi-user connectivity across any device.
+          </div>
+          <div class="form-group">
+            <label for="cloud-url-input">Project URL</label>
+            <input type="url" id="cloud-url-input" class="form-input" placeholder="https://your-project-id.supabase.co" />
+            <span class="form-hint">Found in Supabase Dashboard &rarr; Project Settings &rarr; API</span>
+          </div>
+          <div class="form-group">
+            <label for="cloud-key-input">Anon / Public API Key</label>
+            <input type="password" id="cloud-key-input" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+            <span class="form-hint">Found under Project API Keys (public 'anon' key)</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="cloud-modal-cancel">Cancel</button>
+          <button type="submit" class="btn-submit">Save & Connect</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Full-Screen Auth Overlay (Login & Sign Up) -->
+  <div class="auth-overlay" id="auth-overlay" style="display: none;">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo-badge">M</div>
+        <h2 class="auth-title">My Workspace</h2>
+        <p class="auth-subtitle">Sign in or create an account to join your team workspace.</p>
+      </div>
+      
+      <!-- Auth Mode Tabs -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tab-sign-in">Sign In</button>
+        <button type="button" class="auth-tab-btn" id="tab-sign-up">Create Account</button>
+      </div>
+
+      <form id="auth-form">
+        <div class="auth-body">
+          <div class="auth-error-alert" id="auth-error-alert"></div>
+
+          <!-- Display Name (Visible only on Sign Up) -->
+          <div class="form-group" id="signup-name-group" style="display: none;">
+            <label for="auth-display-name">Full Name / Display Name</label>
+            <input type="text" id="auth-display-name" class="form-input" placeholder="e.g. Sarah Chen" />
+          </div>
+
+          <div class="form-group">
+            <label for="auth-email">Email Address</label>
+            <input type="email" id="auth-email" class="form-input" placeholder="name@company.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" class="form-input" placeholder="••••••••" required minlength="6" />
+            <span class="form-hint" id="password-hint" style="display: none;">Minimum 6 characters.</span>
+          </div>
+
+          <button type="submit" class="auth-submit-btn" id="auth-submit-btn">Sign In</button>
+        </div>
+
+        <div class="auth-footer">
+          <div>
+            Want to test offline? 
+            <span class="demo-mode-link" id="btn-continue-demo">Enter Demo Mode</span>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Supabase JS SDK (Official CDN) & App Logic -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
